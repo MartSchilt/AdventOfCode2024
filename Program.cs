@@ -1,10 +1,54 @@
-﻿namespace AdventOfCode2024;
+﻿using System.Text.RegularExpressions;
+
+namespace AdventOfCode2024;
 
 internal class Program
 {
     static void Main(string[] args)
     {
-        Day2();
+        Day3();
+    }
+
+    private static async void Day3()
+    {
+        await TryRead("Day3.txt", (reader) =>
+        {
+            String? line;
+            int total = 0;
+            bool doOperation = true;
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                foreach (Match regexMatch in Regex.Matches(line, @"mul\(\d+,\d+\)|do\(\)|don't\(\)"))
+                {
+                    string match = regexMatch.ToString();
+                    Console.WriteLine(match);
+
+                    if (match == "do()")
+                    {
+                        doOperation = true;
+                    }
+                    else if (match == "don't()")
+                    {
+                        doOperation = false;
+                    }
+                    else if (doOperation)
+                    {
+                        var numbers = Regex.Matches(match, @"\d+");
+
+                        _ = int.TryParse(numbers.First().ToString(), out int number1);
+                        _ = int.TryParse(numbers.Last().ToString(), out int number2);
+
+                        total += number1 * number2;
+                    }
+                }
+            }
+
+            Console.WriteLine("Total:");
+            Console.WriteLine(total);
+
+            return Task.CompletedTask;
+        });
     }
 
     private static void Day2()
@@ -145,6 +189,24 @@ internal class Program
                 similarities.Add(number * matches.Count);
             }
             Console.WriteLine(similarities.Sum());
+        }
+        catch (IOException e)
+        {
+            Console.WriteLine("The file could not be read:");
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    private static async Task TryRead(string file, Func<StreamReader, Task> func)
+    {
+        try
+        {
+            Console.WriteLine("Start reading file");
+            // Open the text file using a stream reader
+            using StreamReader reader = new("../../../" + file);
+            await func(reader);
+
+            reader.Dispose();
         }
         catch (IOException e)
         {
