@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.Metrics;
+using System.Text.RegularExpressions;
 
 namespace AdventOfCode2024;
 
@@ -6,7 +7,113 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        Day3();
+        Day4();
+    }
+
+    private static async void Day4()
+    {
+        await TryRead("Day4.txt", (reader) =>
+        {
+            String? line;
+            List<List<char>> allLetters = [];
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                List<char> letters = [];
+
+                foreach (char letter in line)
+                {
+                    letters.Add(letter);
+                }
+
+                allLetters.Add(letters);
+            }
+
+            int totalPart1 = 0;
+            int totalPart2 = 0;
+
+            for (int x = 0; x < allLetters.Count; x++)
+            {
+                for (int y = 0; y < allLetters.First().Count; y++)
+                {
+                    totalPart1 += Day4Part1(x, y, allLetters);
+                    totalPart2 += Day4Part2(x, y, allLetters);
+                }
+            }
+
+            Console.WriteLine(totalPart1);
+
+            return Task.CompletedTask;
+        });
+    }
+
+    private static int Day4Part2(int x, int y, List<List<char>> letters)
+    {
+        char letter = letters[x][y];
+        int wordsFound = 0;
+
+        if (letter != 'A')
+            return wordsFound;
+
+        try
+        {
+            var lb = letters[x - 1][y - 1];
+            var lt = letters[x - 1][y + 1];
+            var rb = letters[x + 1][y - 1];
+            var rt = letters[x + 1][y + 1];
+
+            if ((lb == 'M' || lb == 'S') && (rt == 'M' || rt == 'S') && lb != rt)
+            {
+                if ((lt == 'M' || lt == 'S') && (rb == 'M' || rb == 'S') && lt != rb)
+                {
+                    wordsFound++;
+                }
+            }
+        }
+        catch (Exception)
+        { }
+
+        return wordsFound;
+    }
+
+    private static int Day4Part1(int x, int y, List<List<char>> letters)
+    {
+        char letter = letters[x][y];
+        int wordsFound = 0;
+
+        if (letter != 'X')
+            return wordsFound;
+
+        char[] acceptableLetters = ['X', 'M', 'A', 'S'];
+        int[][] directions = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]];
+
+        foreach (var direction in directions)
+        {
+            int letterCount = 0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                try
+                {
+                    var newLetter = letters[x + (direction[0] * i)][y + (direction[1] * i)];
+
+                    if (newLetter != acceptableLetters[i])
+                        throw new Exception("skip");
+
+                    letterCount++;
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message == "skip")
+                        break;
+                }
+            }
+
+            if (letterCount == 4)
+                wordsFound++;
+        }
+
+        return wordsFound;
     }
 
     private static async void Day3()
@@ -51,17 +158,12 @@ internal class Program
         });
     }
 
-    private static void Day2()
+    private static async void Day2()
     {
-        try
+        await TryRead("Day1.txt", (reader) =>
         {
-            // Open the text file using a stream reader
-            using StreamReader reader = new("../../../Day2.txt");
-
             String? line;
             int safeLevels = 0;
-
-            Console.WriteLine("Start reading file");
 
             while ((line = reader.ReadLine()) != null)
             {
@@ -94,12 +196,8 @@ internal class Program
             }
 
             Console.WriteLine(safeLevels);
-        }
-        catch (IOException e)
-        {
-            Console.WriteLine("The file could not be read:");
-            Console.WriteLine(e.Message);
-        }
+            return Task.CompletedTask;
+        });
     }
 
     private static bool Day2Checker(string[] levels)
@@ -142,18 +240,13 @@ internal class Program
         return safe;
     }
 
-    private static void Day1()
+    private static async void Day1()
     {
-        try
+        await TryRead("Day1.txt", (reader) =>
         {
-            // Open the text file using a stream reader
-            using StreamReader reader = new("../../../Day1.txt");
-
             List<int> list1 = [];
             List<int> list2 = [];
             String? line;
-
-            Console.WriteLine("Start reading file");
 
             while ((line = reader.ReadLine()) != null)
             {
@@ -189,12 +282,9 @@ internal class Program
                 similarities.Add(number * matches.Count);
             }
             Console.WriteLine(similarities.Sum());
-        }
-        catch (IOException e)
-        {
-            Console.WriteLine("The file could not be read:");
-            Console.WriteLine(e.Message);
-        }
+
+            return Task.CompletedTask;
+        });
     }
 
     private static async Task TryRead(string file, Func<StreamReader, Task> func)
@@ -203,7 +293,7 @@ internal class Program
         {
             Console.WriteLine("Start reading file");
             // Open the text file using a stream reader
-            using StreamReader reader = new("../../../" + file);
+            using StreamReader reader = new("../../../files/" + file);
             await func(reader);
 
             reader.Dispose();
