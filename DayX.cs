@@ -11,6 +11,7 @@ public static class DayX
     {
         Run(false);
     }
+
     public static async void Run(bool partOne)
     {
         await Helper.TryRead("Test.txt", (reader) =>
